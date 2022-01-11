@@ -1,17 +1,20 @@
 package web.model;
 
 public class User {
-    private int id = 1;
+    private int id;
     private String name;
     private String surname;
-    private String city;
+    private String country;
     private int age;
 
-    public User(int id, String name, String surname, String city, int age) {
+    public User() {
+    }
+
+    public User(int id, String name, String surname, String country, int age) {
         this.id = id;
         this.name = name;
         this.surname = surname;
-        this.city = city;
+        this.country = country;
         this.age = age;
     }
 
@@ -39,12 +42,10 @@ public class User {
         this.surname = surname;
     }
 
-    public String getCity() {
-        return city;
-    }
+    public String getCountry() { return country; }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public int getAge() {

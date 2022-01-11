@@ -7,18 +7,30 @@ import java.util.List;
 
 @Component
 public class UserDaoImpl implements UserDao {
-    private static int people_count;
-    List<User> people;
+    private static int users_count = 1;
+    List<User> users;
 
     {
-        people = new ArrayList<User>();
-        people.add(new User(people_count++, "Gosha", "Petrov", "Russia", 23));
-        people.add(new User(people_count++, "Mick", "Praden", "USA", 46));
-        people.add(new User(people_count++, "Elisabeth", "Hearly", "France", 24));
-        people.add(new User(people_count++, "Sam", "Stone", "Japan", 41));
+        users = new ArrayList<>();
+        users.add(new User(users_count++, "Gosha", "Petrov", "Russia", 23));
+        users.add(new User(users_count++, "Mick", "Praden", "USA", 46));
+        users.add(new User(users_count++, "Elisabeth", "Hearly", "France", 24));
+        users.add(new User(users_count++, "Sam", "Stone", "Japan", 41));
     }
 
+    @Override
     public List<User> index() {
-        return people;
+        return users;
+    }
+
+    @Override
+    public User show(int id) {
+        return users.stream().filter(user -> user.getId() == id).findAny().orElse(null);
+    }
+
+    @Override
+    public void save(User user) {
+        user.setId(++users_count);
+        users.add(user);
     }
 }
