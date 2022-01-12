@@ -33,4 +33,19 @@ public class UserDaoImpl implements UserDao {
         user.setId(++users_count);
         users.add(user);
     }
+
+    @Override
+    public void update(int id, User user) {
+        User updateUser = show(id);
+        updateUser.setId(user.getId());
+        updateUser.setName(user.getName());
+        updateUser.setSurname(user.getSurname());
+        updateUser.setCountry(user.getCountry());
+        updateUser.setAge(user.getAge());
+    }
+
+    @Override
+    public void delete(int id) {
+        users.removeIf(user -> user.getId() == id);
+    }
 }
