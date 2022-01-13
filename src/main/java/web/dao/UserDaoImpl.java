@@ -12,12 +12,8 @@ import java.util.List;
 @Repository
 @Transactional
 public class UserDaoImpl implements UserDao {
-    private final EntityManager entityManager;
-
-    @Autowired
-    public UserDaoImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<User> getAllUsers() {
@@ -45,6 +41,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void delete(int id) {
-        entityManager.remove(id);
+        User user = show(id);
+        entityManager.remove(user);
     }
 }
