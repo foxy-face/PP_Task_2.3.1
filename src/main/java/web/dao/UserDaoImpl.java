@@ -1,43 +1,50 @@
 package web.dao;
 
-import org.springframework.stereotype.Component;
+import org.hibernate.SessionFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import web.model.User;
-import java.util.ArrayList;
+
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
-@Component
+@Repository
+@Transactional
 public class UserDaoImpl implements UserDao {
-    private static int users_count = 1;
-    List<User> users;
+    private final SessionFactory sessionFactory;
 
-    {
-        users = new ArrayList<>();
-        users.add(new User(users_count++, "Gosha", "Petrov", "Russia", 23));
-        users.add(new User(users_count++, "Mick", "Praden", "USA", 46));
-        users.add(new User(users_count++, "Elisabeth", "Hearly", "France", 24));
-        users.add(new User(users_count++, "Sam", "Stone", "Japan", 41));
+    public UserDaoImpl(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
-    public List<User> index() {
-        return users;
+    public List<User> getAllUsers() {
+        TypedQuery<User> query = sessionFactory.getCurrentSession().createQuery("from User");
+        return query.getResultList();
     }
 
     @Override
     public User show(int id) {
-        return users.stream().filter(user -> user.getId() == id).findAny().orElse(null);
+        TypedQuery<User> query
+                = sessionFactory.getCurrentSession()
+                .createQuery("from User where id = :id");
+        query.setParameter("id", id);
+        return query.getSingleResult();
     }
 
     @Override
-    public void save(User user) {
-        user.setId(++users_count);
-        users.add(user);
+    public void add(User user) {
+        sessionFactory.getCurrentSession().save(user);
     }
 
     @Override
     public void update(int id, User user) {
-        User updateUser = show(id);
-        updateUser.setId(user.getId());
+        TypedQuery<User> query
+                = sessionFactory.getCurrentSession()
+                .createQuery("from User where id = :id");
+        query.setParameter("id", id);
+        User updateUser = query.getSingleResult();
         updateUser.setName(user.getName());
         updateUser.setSurname(user.getSurname());
         updateUser.setCountry(user.getCountry());
@@ -46,6 +53,11 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void delete(int id) {
-        users.removeIf(user -> user.getId() == id);
+        Query query = sessionFactory.getCurrentSession().createQuery(
+                "delete from User where id = :id");
+//        query.executeUpdate();
+//        Query q = sessionFactory.getCurrentSession().createQuery("DELETE FROM Predictionlevelwater WHERE namePost = :namePost");
+        query.setParameter("id", id);
+        query.executeUpdate();
     }
 }

@@ -2,13 +2,14 @@ package web.config;
 
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-public class AppInit extends AbstractAnnotationConfigDispatcherServletInitializer {
+public class MvcConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
     protected Class<?>[] getRootConfigClasses() {
-        return null;
+        return new Class<?>[] {
+                DBConfig.class
+        };
     }
 
     protected Class<?>[] getServletConfigClasses() {
@@ -21,6 +22,8 @@ public class AppInit extends AbstractAnnotationConfigDispatcherServletInitialize
         return new String[]{"/"};
     }
 
+// Автоматически вызываться сервлетом при загрузке приложения.
+// Spring Dispatcher Servlet обарабатывает все запросы cопоставляя URL "/"
     @Override
     public void onStartup(ServletContext aServletContext) throws ServletException {
         super.onStartup(aServletContext);
