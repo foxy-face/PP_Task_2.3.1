@@ -1,16 +1,19 @@
 package web.config;
 
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import web.model.User;
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 @Configuration
@@ -25,31 +28,48 @@ public class DBConfig {
     }
 
     @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean() {
+        LocalContainerEntityManagerFactoryBean em =
+                new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(getDataSource());
+        em.setPackagesToScan(env.getRequiredProperty("db.entity.package"));
+        em.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        em.setJpaProperties(getHibernateProperties());
+        return em;
+    }
+
+    private Properties getHibernateProperties() {
+        try {
+            Properties properties = new Properties();
+            InputStream is = getClass().getClassLoader().getResourceAsStream("hibernate.properties");
+            properties.load(is);
+            return properties;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't find 'hibernate.properties' in classpath", e);
+        }
+    }
+
+    @Bean
     public DataSource getDataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(env.getProperty("db.driver"));
-        dataSource.setUrl(env.getProperty("db.url"));
-        dataSource.setUsername(env.getProperty("db.username"));
-        dataSource.setPassword(env.getProperty("db.password"));
-        return dataSource;
+        BasicDataSource bdcp = new BasicDataSource();
+        bdcp.setUrl(env.getRequiredProperty("db.url"));
+        bdcp.setDriverClassName(env.getRequiredProperty("db.driver"));
+        bdcp.setUsername(env.getRequiredProperty("db.username"));
+        bdcp.setPassword(env.getRequiredProperty("db.password"));
+        bdcp.setInitialSize(Integer.valueOf(env.getRequiredProperty("db.initialSize")));
+        bdcp.setMinIdle(Integer.valueOf(env.getRequiredProperty("db.minIdle")));
+        bdcp.setMaxIdle(Integer.valueOf(env.getRequiredProperty("db.maxIdle")));
+        bdcp.setTimeBetweenEvictionRunsMillis(Long.valueOf(env.getRequiredProperty("db.timeBetweenEvictionRunsMillis")));
+        bdcp.setMinEvictableIdleTimeMillis(Long.valueOf(env.getRequiredProperty("db.minEvictableIdleTimeMillis")));
+        bdcp.setTestOnBorrow(Boolean.valueOf(env.getRequiredProperty("db.testOnBorrow")));
+        bdcp.setValidationQuery(env.getRequiredProperty("db.validationQuery"));
+        return bdcp;
     }
 
     @Bean
-    public LocalSessionFactoryBean getSessionFactory() {
-        LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
-        factoryBean.setDataSource(getDataSource());
-        Properties props=new Properties();
-        props.put("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
-        props.put("hibernate.hbm2ddl.auto", env.getProperty("hibernate.hbm2ddl.auto"));
-        factoryBean.setHibernateProperties(props);
-        factoryBean.setAnnotatedClasses(User.class);
-        return factoryBean;
-    }
-
-    @Bean
-    public HibernateTransactionManager getTransactionManager() {
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(getSessionFactory().getObject());
-        return transactionManager;
+    public PlatformTransactionManager platformTransactionManager(){
+        JpaTransactionManager manager = new JpaTransactionManager();
+        manager.setEntityManagerFactory(entityManagerFactoryBean().getObject());
+        return manager;
     }
 }
