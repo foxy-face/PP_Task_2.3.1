@@ -17,12 +17,12 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        return entityManager.createQuery("from User user").getResultList();
+        return entityManager.createQuery("from User", User.class).getResultList();
     }
 
     @Override
     public User show(int id) {
-        return (User) entityManager.find(User.class, id);
+        return entityManager.find(User.class, id);
     }
 
     @Override
@@ -32,16 +32,16 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public void update(int id, User user) {
-        User updateUser = (User) entityManager.find(User.class, id);
+        User updateUser = show(id);
         updateUser.setName(user.getName());
         updateUser.setSurname(user.getSurname());
         updateUser.setCountry(user.getCountry());
         updateUser.setAge(user.getAge());
+        entityManager.merge(updateUser);
     }
 
     @Override
     public void delete(int id) {
-        User user = show(id);
-        entityManager.remove(user);
+        entityManager.remove(show(id));
     }
 }
