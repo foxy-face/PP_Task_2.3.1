@@ -24,6 +24,9 @@ public class User {
     @Column(name = "age", nullable = false)
     private int age;
 
+    @Column(name = "status")
+    private String status;
+
     public User() {
     }
 
